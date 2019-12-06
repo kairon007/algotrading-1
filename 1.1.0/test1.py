@@ -13,14 +13,18 @@ for sym in symbols :
 		time.sleep(80)
 		count=1
 	else:
-		print ("Fetching data for  : " + sym)
-		data = {"function": "TIME_SERIES_DAILY", 
-		        "symbol": sym+'.NS',
-		        "outputsize" : "full",
-		        "datatype": "json", 
-		        "apikey": "01LSAIRK0QTB0QMN" } 
-		response = requests.get(API_URL, data)   
-		print ("Response received for  : " + sym)
+		try:
+			print ("Fetching data for  : " + sym)
+			data = {"function": "TIME_SERIES_DAILY",
+			        "symbol": sym+'.NS',
+			        "outputsize" : "full",
+			        "datatype": "json", 
+			        "apikey": "01LSAIRK0QTB0QMN" }	
+			response = requests.get(API_URL, data)   
+			print ("Response received for  : " + sym)
+		except Exception:
+			print("Error while fetching data for "+sym)
+			continue
 		items = response.json()['Time Series (Daily)'].items()
 		keys = list(items)
 		for key in keys:
