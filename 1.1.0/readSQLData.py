@@ -18,7 +18,7 @@ finalWeight_05=[]
 avg = 0
 avg5=0
 Totalweight_5=[]
-sql_query = "select * from daily_ohlc where symbol = 'PNBHOUSING' order by date1 asc"
+sql_query = "select * from daily_ohlc where symbol = 'tcs' order by date1 asc"
 mycursor.execute(sql_query)
 records = mycursor.fetchall()
 count = 1;
