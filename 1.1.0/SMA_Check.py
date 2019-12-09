@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 import itertools
 from tabulate import tabulate 
 import pandas as pd
-count1 = 18
-count2=27
+count1 = 20
+count2=50
 tabularData=[("symbol","Success","Failures","Success Ratio","OpenTrade","Rec. Date","Price")]
 mycursor = t.mydb.cursor()
 sym_query = "select distinct symbol from daily_ohlc"
