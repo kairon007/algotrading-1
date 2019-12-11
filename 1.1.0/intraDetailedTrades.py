@@ -21,14 +21,14 @@ price=[]
 avg = 0
 avg5=0
 Totalweight_5=[]
-symbol = "BALKRISIND"
+symbol = "BAJFINANCE"
 sql_query = "select * from intra_ohlc where symbol = '"+str(symbol)+"'order by date1 asc"
 mycursor.execute(sql_query)
 records_raw = mycursor.fetchall()
 records = records_raw
 count = 1
 count1 = 5
-count2=20
+count2=10
 isListFull = False
 w_avg5=[]
 print("Crossover of ",count1," SMA and ",count2," SMA for ",symbol +"\n\n")
@@ -109,7 +109,7 @@ new_timezone=pytz.timezone('Asia/Kolkata')
 for (a,b,c,d) in zip(finalDate,finalWeight_05,finalWeight_10,price):
 		convertedDate=datetime.datetime.strptime(a,'%Y-%m-%d %H:%M:%S')
 		asiaTime=old_timezone.localize(convertedDate).astimezone(new_timezone)
-		#print("Asia Time :" , asiaTime)
+		#print("Asia Time :" , asiaTime.time())
 		if(loopCount==0 or currentDate==asiaTime.date()):
 			daychanged=False
 		else:
@@ -118,12 +118,27 @@ for (a,b,c,d) in zip(finalDate,finalWeight_05,finalWeight_10,price):
 			loopCount = loopCount+1
 			currentDate=asiaTime.date()
 			#print(currentDate)
+
 			if(buyTrade==False and b>c):
 				print ("Buy stock -- "+str(count1)+ " Day SMA "+ str(b) + " crosses "+str(count2)+" Day SMA "+str(c) + "on " +str(asiaTime))
 				buyPrice = d
 				buyTrade = True
 				sellTrade=False
 				buyDate =asiaTime
+			# elif(buyTrade==True and str(asiaTime.time())=='15:15:00'):
+			# 	print("sell  Stock -- "+str(count2)+" Day SMA "+ str(b) + " crosses "+str(count1)+" Day SMA "+str(c) + "on " +str(asiaTime))
+			# 	sellDate =asiaTime
+			# 	sellPrice = d
+			# 	if(buyPrice<=sellPrice):
+			# 		result='Success'
+			# 		success_trade = success_trade+1
+			# 	else:
+			# 		result='Fail'
+			# 		failed_trade = failed_trade+1
+			# 	tradeCount = tradeCount+1
+			# 	tabularData.append([str(buyDate),buyPrice,sellPrice,str(sellDate),round((sellPrice-buyPrice)*100/buyPrice,2),result])
+			# 	sellTrade=True
+			# 	buyTrade=False
 			elif(buyTrade==True and sellTrade == False and b<c):
 				print("sell  Stock -- "+str(count2)+" Day SMA "+ str(b) + " crosses "+str(count1)+" Day SMA "+str(c) + "on " +str(asiaTime))
 				sellDate =asiaTime
@@ -148,7 +163,8 @@ for (a,b,c,d) in zip(finalDate,finalWeight_05,finalWeight_10,price):
 				loopCount = 0
 # if(buyTrade==True):
 # 	tabularData.append([str(buyDate),buyPrice,"","",""])
-
+if(buyTrade==True):
+	tabularData.append([str(buyDate),buyPrice,'','','',''])
 print(tabulate(tabularData,headers="firstrow"))
 print("\n\nTotal Successful Trades :" + str(success_trade))
 print("Total Failed Trades :" + str(failed_trade))
