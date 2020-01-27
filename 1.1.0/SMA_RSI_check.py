@@ -9,8 +9,10 @@ import matplotlib.pyplot as plt
 import itertools
 from tabulate import tabulate 
 import pandas as pd
-count1 = 50
+
+count1 =50
 count2=100
+rsi_periode=14
 tabularData=[("symbol","Success","Failures","Success Ratio","OpenTrade","Rec. Date","Price")]
 mycursor = t.mydb.cursor()
 sym_query = "select distinct symbol from daily_ohlc"
@@ -18,8 +20,8 @@ mycursor.execute(sym_query)
 records_sym = mycursor.fetchall()
 print("Crossover of ",count1," SMA and ",count2," SMA \n\n")
 for symbol in records_sym:
-		mycursor.execute("select * from daily_ohlc where symbol = '"+str(symbol[0])+"' order by date1 asc")
-		records= mycursor.fetchall()
+		rs=0
+		rsi=[]
 		dates=[]
 		w_avg10=[]
 		Totalweight=[]
@@ -30,14 +32,50 @@ for symbol in records_sym:
 		avg = 0
 		avg5=0
 		Totalweight_5=[]
+		sql_query = "select * from daily_ohlc where symbol = '"+str(symbol[0])+"'order by date1 asc"
+		mycursor.execute(sql_query)
+		records_raw = mycursor.fetchall()
+		records = records_raw
 		count = 1
 		isListFull = False
 		w_avg5=[]
-		#print("Total number of rows for "+str(symbol[0])+" : "+ mycursor.rowcount)
+		gain=[]
+		loss=[]
+		avg_gain=0
+		avg_loss=0
+		previous_close=0
 		for row in records:
 			#d1= datetime.datetime.strftime(row[1], '%d/%m')
 			d1=row[1]
 			d2= row[4]
+			close=row[3]
+			if(previous_close!=0 and close>=previous_close):
+				# Its a gain for he day. Calculate gain
+				gain.append(round(close - previous_close))
+				loss.append(0)
+				avg_gain = avg_gain + close - previous_close
+				previous_close=close
+			elif (previous_close!=0 and close<previous_close):
+				#Its a loss for the day. Calculate loss
+				loss.append(round(previous_close - close))
+				gain.append(0)
+				avg_loss = avg_loss + previous_close - close
+				previous_close=close
+			else:
+				#assign previous close as close
+				previous_close=close
+				gain.append(0)
+				loss.append(0)
+			if(count>=rsi_periode):
+				rs= (avg_gain/rsi_periode)/(avg_loss/rsi_periode)
+				rsi.append(round(100-(100/(1+rs))))
+				avg_gain=avg_gain - gain[0]
+				gain.pop(0)
+				avg_loss = avg_loss - loss[0]
+				loss.pop(0)
+			else :
+				temp=0
+				rsi.append(temp)
 			price.append(d2)
 			if(isListFull==False and count<count2):
 				dates.append(d1)
@@ -100,36 +138,47 @@ for symbol in records_sym:
 		success_trade=0
 		failed_trade=0
 		tradeCount=0
-		tempDate = ''
-
-		for (a,b,c,d) in zip(finalDate,finalWeight_05,finalWeight_10,price):
-			if(buyTrade==False and b>c):
-				#print ("Buy stock -- "+str(count1)+ " Day SMA "+ str(b) + " crosses "+str(count2)+" Day SMA "+str(c) + "on " +str(a))
-				buyPrice = d
-				buyTrade = True
-				sellTrade=False
-				tempDate =a
-			elif(buyTrade==True and sellTrade == False and b<c):
+		buyDate = ''
+		sellDate=''
+		buyRSI=0
+		smaCrossed = False
+		tempDate=''
+		for (a,b,c,d,e) in zip(finalDate,finalWeight_05,finalWeight_10,price,rsi):
+			if(buyTrade==False and b>c and smaCrossed == False):
+				#print ("Buy stock -- "+str(count1)+ " Day SMA "+ str(b) + " crosses "+str(count2)+" Day SMA "+str(c) + "on " +str(a) + " with RSI :" + str(e))
+				smaCrossed = True
+				if(e > 0 and e < 100):
+					buyPrice = d
+					buyTrade = True
+					sellTrade=False
+					tempDate =a
+			elif(b<c):
 				#print("sell  Stock -- "+str(count2)+" Day SMA "+ str(b) + " crosses "+str(count1)+" Day SMA "+str(c) + "on " +str(a))
-				sellPrice = d
-				if(buyPrice<=sellPrice):
-					result='Success'
-					success_trade = success_trade+1
-				else:
-					result='Fail'
-					failed_trade = failed_trade+1
-				tradeCount = tradeCount+1
-				#tabularData.append([str(a),buyPrice,sellPrice,(sellPrice-buyPrice),result])
-				sellTrade=True
-				buyTrade=False
+				smaCrossed = False
+				if(buyTrade==True and sellTrade == False):
+					sellPrice = d
+					if(buyPrice<=sellPrice):
+						result='Success'
+						success_trade = success_trade+1
+					else:
+						result='Fail'
+						failed_trade = failed_trade+1
+					tradeCount = tradeCount+1
+					#tabularData.append([str(a),buyPrice,sellPrice,(sellPrice-buyPrice),result])
+					sellTrade=True
+					buyTrade=False
 		# if(buyTrade==True):
 		# 	tabularData.append([str(tempDate),buyPrice,"","",""])
 		if(tradeCount==0):
-			success_ratio = "NA"
+			success_ratio = 0
 		else:
 			success_ratio = round((success_trade*100/tradeCount),2)
-		if(buyTrade==True and success_ratio > 60):
-			tabularData.append([symbol[0],str(success_trade),str(failed_trade),str(success_ratio)+" %","Buy",str(datetime.datetime.strftime(tempDate, '%d/%m/%y')),str(buyPrice)])
+		if(buyTrade == True):
+			openTrade = "Buy"
+		else:
+			openTrade="No"
+		if(success_ratio > 70):
+			tabularData.append([symbol[0],str(success_trade),str(failed_trade),str(success_ratio)+" %",openTrade,str(datetime.datetime.strftime(tempDate, '%d/%m/%y')),str(buyPrice)])
 		#else:
 		#	tabularData.append([symbol[0],str(success_trade),str(failed_trade),str(success_ratio)+" %","No","",""])
 

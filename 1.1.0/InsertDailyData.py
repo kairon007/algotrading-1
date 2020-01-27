@@ -9,6 +9,8 @@ API_URL = "https://www.alphavantage.co/query"
 available_sym_query = "select distinct(symbol) from daily_ohlc"
 mycursor.execute(available_sym_query)
 symbols = mycursor.fetchall()
+symbols=[('AVANTIFEED',)]
+#print(symbols)
 count = 1
 for sym in symbols :
 	items=[]
