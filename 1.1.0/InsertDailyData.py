@@ -9,7 +9,6 @@ API_URL = "https://www.alphavantage.co/query"
 available_sym_query = "select distinct(symbol) from daily_ohlc"
 mycursor.execute(available_sym_query)
 symbols = mycursor.fetchall()
-symbols=[('AVANTIFEED',)]
 #print(symbols)
 count = 1
 for sym in symbols :
@@ -24,14 +23,14 @@ for sym in symbols :
 			print ("Fetching data for  : ",sym[0])
 			data = {"function": "TIME_SERIES_DAILY",
 			        "symbol": sym[0]+'.NS',
-			        "outputsize" : "full",
-			        "datatype": "json", 
+			        "outputsize" : "full", 
 			        "apikey": "01LSAIRK0QTB0QMN" }	#Dipesh Key
 			response = requests.get(API_URL, data)   
 			print ("Response received for  : " + sym[0])
 			items = response.json()['Time Series (Daily)'].items()
 			keys = list(items)
 		except Exception:
+			print (response.text)
 			print("Error while fetching data for ",sym[0])
 			continue
 		for key in keys:

@@ -10,8 +10,8 @@ import itertools
 from tabulate import tabulate 
 import pandas as pd
 
-count1 =50
-count2=100
+count1 =20
+count2=50
 rsi_periode=14
 tabularData=[("symbol","Success","Failures","Success Ratio","OpenTrade","Rec. Date","Price")]
 mycursor = t.mydb.cursor()

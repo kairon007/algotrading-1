@@ -140,5 +140,5 @@ print(tabulate(tabularData,headers="firstrow"))
 # plt.plot(finalWeight_10[-50:],finalWeight_05[-50:])
 # plt.show()
 
-# df = pd.DataFrame.from_dict(tabularData)
-# df.to_excel('test.xlsx', header=True, index=False)
+df = pd.DataFrame.from_dict(tabularData)
+df.to_excel('test.xlsx', header=True, index=False)

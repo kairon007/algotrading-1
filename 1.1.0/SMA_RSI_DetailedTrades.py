@@ -32,8 +32,8 @@ for symbol in records_sym:
 	records_raw = mycursor.fetchall()
 	records = records_raw
 	count = 1
-	count1 = 50
-	count2=100
+	count1 = 20
+	count2=50
 	isListFull = False
 	w_avg5=[]
 	gain=[]
