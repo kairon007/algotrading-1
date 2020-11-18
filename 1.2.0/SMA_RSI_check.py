@@ -32,7 +32,7 @@ for symbol in records_sym:
 		avg = 0
 		avg5=0
 		Totalweight_5=[]
-		sql_query = "select * from daily_ohlc where symbol = '"+str(symbol[0])+"'order by date1 asc"
+		sql_query = "select * from cam_data where symbol = '"+str(symbol[0])+"'order by date asc"
 		mycursor.execute(sql_query)
 		records_raw = mycursor.fetchall()
 		records = records_raw

@@ -10,7 +10,7 @@ import itertools
 from tabulate import tabulate 
 
 mycursor = t.mydb.cursor()
-sym_query = "select distinct symbol from daily_ohlc"
+sym_query = "select distinct symbol from cam_data"
 mycursor.execute(sym_query)
 records_sym = mycursor.fetchall()
 rsi_periode=14
@@ -27,7 +27,7 @@ for symbol in records_sym:
 	avg = 0
 	avg5=0
 	Totalweight_5=[]
-	sql_query = "select * from daily_ohlc where symbol = '"+str(symbol[0])+"'order by date1 asc"
+	sql_query = "select * from cam_data where symbol = '"+str(symbol[0])+"'order by date asc"
 	mycursor.execute(sql_query)
 	records_raw = mycursor.fetchall()
 	records = records_raw
@@ -169,8 +169,8 @@ for symbol in records_sym:
 				buyTrade=False
 	if(buyTrade==True):
 		tabularData.append([str(buyDate),buyPrice,buyRSI,"","",""])
-	if(tradeCount>0):
-		if((success_trade*100/tradeCount) >70):
+	if(tradeCount>0 and buyTrade==True):
+		if((success_trade*100/tradeCount) >80):
 
 			print('\n\nSymbol : ',symbol[0])
 			print(tabulate(tabularData,headers="firstrow"))
