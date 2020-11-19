@@ -170,7 +170,7 @@ for symbol in records_sym:
 	if(buyTrade==True):
 		tabularData.append([str(buyDate),buyPrice,buyRSI,"","",""])
 	if(tradeCount>0 and buyTrade==True):
-		if((success_trade*100/tradeCount) >80):
+		if((success_trade*100/tradeCount) >70):
 
 			print('\n\nSymbol : ',symbol[0])
 			print(tabulate(tabularData,headers="firstrow"))
