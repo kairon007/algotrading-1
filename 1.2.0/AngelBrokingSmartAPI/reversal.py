@@ -2,11 +2,14 @@ import testdata as t
 import datetime
 import json
 import time
+from AlgoStocks import AlgoStocks 
 from datetime import timedelta
 from pprintpp import pprint as pp
 from tabulate import tabulate 
 
+aStocksList=[]
 tabularData=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor")]
+tabularData2=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor","avg candlesize","SMA10")]
 record_l1={}
 record_l2={}
 record_cur={}
@@ -21,6 +24,7 @@ avg_candlesize=0
 total_price=0
 signal1=""
 signal2=""
+
 for record in records:
 	if(record_count==0):
 		record_cur=record
@@ -46,6 +50,8 @@ for record in records:
 	record_count=record_count+1
 	if(record_count==51):
 		avg_candlesize=round((total_candlesize/50),2)
+		aStock = AlgoStocks(record_cur[0],record_cur,avg_candlesize,SMA_10)
+		aStocksList.append(aStock)
 		break;
 
 #wick reversal
@@ -71,3 +77,9 @@ print("SMA10  : ",SMA_10)
 print("Avergae Candlesize : ", avg_candlesize)
 print("wick reversal signal = ",signal1);
 print("extreme reversal signal = ",signal2);
+
+for stock in aStocksList:
+	tempTabular=[stock]
+	tabularData2.append(tempTabular)
+
+print(tabulate(tabularData2,headers="firstrow"))
