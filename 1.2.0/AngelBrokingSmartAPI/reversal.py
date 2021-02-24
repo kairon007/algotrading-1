@@ -51,13 +51,19 @@ for sym in symbols:
 				total_candlesize= total_candlesize + record[10]
 			if(record_count >11):
 				total_candlesize= total_candlesize + record[10]
-				avg_candlesize=round((total_candlesize/record_count+1),2)
+			
+			record_count=record_count+1
+
+			if(record_count==51):
+				avg_candlesize=round((total_candlesize/50),2)
 				aStock = AlgoStocks(record_cur[0],record_cur,avg_candlesize,SMA_10)
 				aStocksList.append(aStock)
-				break;	
-			if(record_count==51):
+				aStock=AlgoStocks(record_cur[0],record_l1,0,0)
+				aStocksList.append(aStock)
+				aStock=AlgoStocks(record_cur[0],record_l2,0,0)
+				aStocksList.append(aStock)
 				break;
-			record_count=record_count+1
+			
 
 #wick reversal
 if(record_cur[7]>=2.5*record_cur[6]):
@@ -77,14 +83,55 @@ if(record_l1[10]>=2*avg_candlesize and record_l1[8]>0.5 and record_l1[8]<0.85):
 
 
 
-print(tabulate(tabularData,headers="firstrow"))
-print("SMA10  : ",SMA_10)
-print("Avergae Candlesize : ", avg_candlesize)
-print("wick reversal signal = ",signal1);
-print("extreme reversal signal = ",signal2);
+#print(tabulate(tabularData,headers="firstrow"))
+
+
+process_sym=""
+cur_candle=[]
+prev_candle=[]
+l2_candle=[]
+process_avg_candlesize=0
+process_sma10=0
+sym_count=0
 
 for stock in aStocksList:
-	tempTabular=[stock]
-	tabularData2.append(tempTabular)
+	tabularData=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor")]
+	signal1=""
+	signal2=""
+	if(process_sym=="" or sym_count==0):
+		process_sym=stock.symbol
+		cur_candle=stock.stock
+		process_avg_candlesize=stock.avg_candlesize
+		process_sma10=stock.sma10
+		sym_count=sym_count+1
+	elif(process_sym==stock.symbol and sym_count==1):
+		prev_candle=stock.stock
+		sym_count=sym_count+1
+	elif(process_sym==stock.symbol and sym_count==2):
+		l2_candle=stock.stock
+		
+		#wick reversal
+		if(cur_candle[7]>=2.5*cur_candle[6]):
+			if(cur_candle[9]<=0.35):
+				signal1="buy"
+			if(cur_candle[9]>=0.65):
+				signal1="sell"
 
-print(tabulate(tabularData2,headers="firstrow"))
+		#extreme reversal
+		if(prev_candle[10]>=2*process_avg_candlesize and prev_candle[8]>0.5 and prev_candle[8]<0.85):
+			if(prev_candle[11]!=cur_candle[11]):
+				if(cur_candle[11]=='G'):
+					signal2="buy"
+				else:
+					signal2="sell"
+		sym_count=0
+
+		if(signal1!="" or signal2!=""):
+			tempTabular=cur_candle
+			tabularData.append(tempTabular)
+			print(tabulate(tabularData,headers="firstrow"))
+			print("SMA10  : ",process_sma10)
+			print("Avergae Candlesize : ", process_avg_candlesize)
+			print("wick reversal signal = ",signal1)
+			print("extreme reversal signal = ",signal2)
+
