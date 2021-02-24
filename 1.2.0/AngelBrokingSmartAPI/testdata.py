@@ -4,7 +4,8 @@ import pytz
 mydb = mysql.connector.connect(
   host="localhost",
   user="root",
-  passwd="root",
+  #passwd="root"
+  passwd="Mmp@2020",
   database="algo_trade"
 )
 
