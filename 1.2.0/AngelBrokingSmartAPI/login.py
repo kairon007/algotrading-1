@@ -3,7 +3,7 @@ import mimetypes
 conn = http.client.HTTPSConnection(
     "apiconnect.angelbroking.com"
     )
-payload = "{\n\"clientcode\":\"D43726\",\n\"password\":\"Vanisha@2019\"\n}"
+payload = "{\n\"clientcode\":\"D43726\",\n\"password\":\"Angel@1986\"\n}"
 headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

@@ -9,15 +9,15 @@ from tabulate import tabulate
 
 aStocksList=[]
 tabularData=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor")]
-tabularData2=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor","avg candlesize","SMA10")]
 record_l1={}
 record_l2={}
 record_cur={}
 mycursor = t.mydb.cursor()
-symQuery = "select distinct symbol from candle_data"
+symQuery = "select distinct symbol from algo_symbols"
 mycursor.execute(symQuery)
 symbols = mycursor.fetchall()
 for sym in symbols:
+		
 		sqlquery =  "select * from candle_data where symbol='"+str(sym[0])+"' order by closingtime desc LIMIT 51"
 		mycursor.execute(sqlquery)
 		records = mycursor.fetchall()
@@ -30,6 +30,7 @@ for sym in symbols:
 		signal2=""
 
 		for record in records:
+			#print("Symbol processed  : ",str(sym[0]))
 			if(record_count==0):
 				record_cur=record
 				tabularData.append(record)
@@ -66,20 +67,20 @@ for sym in symbols:
 			
 
 #wick reversal
-if(record_cur[7]>=2.5*record_cur[6]):
-	if(record_cur[9]<=0.35):
-		signal1="buy"
-	if(record_cur[9]>=0.65):
-		signal1="sell"
+# if(record_cur[7]>=2.5*record_cur[6]):
+# 	if(record_cur[9]<=0.35):
+# 		signal1="buy"
+# 	if(record_cur[9]>=0.65):
+# 		signal1="sell"
 
 
-#extreme reversal
-if(record_l1[10]>=2*avg_candlesize and record_l1[8]>0.5 and record_l1[8]<0.85):
-	if(record_l1[11]!=record_cur[11]):
-		if(record_cur[11]=='G'):
-			signal2="buy"
-		else:
-			signal2="sell"
+# #extreme reversal
+# if(record_l1[10]>=2*avg_candlesize and record_l1[8]>0.5 and record_l1[8]<0.85):
+# 	if(record_l1[11]!=record_cur[11]):
+# 		if(record_cur[11]=='G'):
+# 			signal2="buy"
+# 		else:
+# 			signal2="sell"
 
 
 
@@ -93,11 +94,14 @@ l2_candle=[]
 process_avg_candlesize=0
 process_sma10=0
 sym_count=0
-
+tabularData=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor")]
+tabularData2=[("symbol","SMA10","Wick_reversal_signal","Extream_reversal_signal")]
 for stock in aStocksList:
-	tabularData=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor")]
-	signal1=""
-	signal2=""
+	
+	#tabularData.append(stock.stock)
+	
+	signal1=" "
+	signal2=" "
 	if(process_sym=="" or sym_count==0):
 		process_sym=stock.symbol
 		cur_candle=stock.stock
@@ -126,12 +130,14 @@ for stock in aStocksList:
 					signal2="sell"
 		sym_count=0
 
-		if(signal1!="" or signal2!=""):
-			tempTabular=cur_candle
-			tabularData.append(tempTabular)
-			print(tabulate(tabularData,headers="firstrow"))
-			print("SMA10  : ",process_sma10)
-			print("Avergae Candlesize : ", process_avg_candlesize)
-			print("wick reversal signal = ",signal1)
-			print("extreme reversal signal = ",signal2)
-
+		if(signal1!=" " or signal2!=" "):
+			# tempTabular=cur_candle
+			# tabularData.append(tempTabular)
+			# print(tabulate(tabularData,headers="firstrow"))
+			tempTabular = [process_sym,process_sma10,signal1,signal2]
+			tabularData2.append(tempTabular)
+			# print("SMA10  : ",process_sma10)
+			# print("Avergae Candlesize : ", process_avg_candlesize)
+			# print("wick reversal signal = ",signal1)
+			# print("extreme reversal signal = ",signal2)
+print(tabulate(tabularData2,headers="firstrow"))
