@@ -29,18 +29,19 @@ for d in data:
 
 ss = WebSocket(FEED_TOKEN, CLIENT_CODE)
 def on_tick(ws, tick):
-	for i in tick:
-		tempData=[]
-		dataItems = i.items()
-		symboltick={}
-		if(len(dataItems)==19):
-			for records in dataItems:
-				symboltick[(records[0].replace(" ",""))]=records[1].replace(" ","")
-			cur_symbol = list(symToken.keys())[list(symToken.values()).index(symboltick["tk"])]
-			tempData=(str(datetime.now().strftime("%H:%M:%S")),cur_symbol,str(symboltick["ltp"]))
-			tabulardata.append(tempData)
-	os.system('cls')
-	print(tabulate(tabulardata,headers="firstrow"))
+	if(datetime.now() >= t.starttime and datetime.now() <= t.endtime):
+		for i in tick:
+			tempData=[]
+			dataItems = i.items()
+			symboltick={}
+			if(len(dataItems)==19):
+				for records in dataItems:
+					symboltick[(records[0].replace(" ",""))]=records[1].replace(" ","")
+				cur_symbol = list(symToken.keys())[list(symToken.values()).index(symboltick["tk"])]
+				tempData=(str(datetime.now().strftime("%H:%M:%S")),cur_symbol,str(symboltick["ltp"]))
+				tabulardata.append(tempData)
+		os.system('cls')
+		print(tabulate(tabulardata,headers="firstrow"))
 				
 	
 def on_connect(ws, response):
