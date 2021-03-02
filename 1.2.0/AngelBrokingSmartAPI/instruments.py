@@ -1,13 +1,12 @@
 import urllib.request
 import  json
 import testdata as t
-# url1 = "https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json"
-# with urllib.request.urlopen(url1) as url:
-#     s = url.read()
-# data = json.loads(s)
-# with open('data.txt', 'w') as outfile:
-#     json.dump(data, outfile)
-
+url1 = "https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json"
+with urllib.request.urlopen(url1) as url:
+    s = url.read()
+data = json.loads(s)
+with open('data.txt', 'w') as outfile:
+    json.dump(data, outfile)
 
 mycursor = t.mydb.cursor()
 symQuery = "select distinct symbol from algo_symbols"
