@@ -34,6 +34,7 @@ def form_candle(time,sym,ltp):
 		candleData={}
 		candleData[sym] = [ltp,ltp,ltp,ltp]
 		new_candle_flag[sym]="close"
+		#asd
 		start_program_flag=False
 
 	else:
