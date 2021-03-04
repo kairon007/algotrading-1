@@ -39,7 +39,12 @@ def form_candle(time,sym,ltp,candleData):
 			candleData={}
 		candleData[sym] = [ltp,ltp,ltp,ltp]
 		new_candle_flag[sym]="close"
+<<<<<<< HEAD
 		print("start for : ",sym)
+=======
+		#asd
+		start_program_flag=False
+>>>>>>> fb50d7f0a0808f829fd489fd39523ff04132651c
 
 	else:
 		keys = candleData.keys()
