@@ -13,7 +13,7 @@ record_l1={}
 record_l2={}
 record_cur={}
 mycursor = t.mydb.cursor()
-symQuery = "select distinct symbol from algo_symbols"
+symQuery = "select distinct symbol from candle_data"
 mycursor.execute(symQuery)
 symbols = mycursor.fetchall()
 for sym in symbols:
@@ -28,7 +28,7 @@ for sym in symbols:
 		total_price=0
 		signal1=""
 		signal2=""
-
+		total_records = len(records)
 		for record in records:
 			#print("Symbol processed  : ",str(sym[0]))
 			if(record_count==0):
@@ -55,8 +55,8 @@ for sym in symbols:
 			
 			record_count=record_count+1
 
-			if(record_count==51):
-				avg_candlesize=round((total_candlesize/50),2)
+			if(record_count==51 or record_count==total_records):
+				avg_candlesize=round((total_candlesize/(record_count-1)),2)
 				aStock = AlgoStocks(record_cur[0],record_cur,avg_candlesize,SMA_10)
 				aStocksList.append(aStock)
 				aStock=AlgoStocks(record_cur[0],record_l1,0,0)
@@ -140,4 +140,7 @@ for stock in aStocksList:
 			# print("Avergae Candlesize : ", process_avg_candlesize)
 			# print("wick reversal signal = ",signal1)
 			# print("extreme reversal signal = ",signal2)
+		else:
+			tempTabular = [process_sym,process_sma10,signal1,signal2]
+			tabularData2.append(tempTabular)	
 print(tabulate(tabularData2,headers="firstrow"))

@@ -9,19 +9,19 @@ from tabulate import tabulate
 global candleData,mycursor,candle_start_times,candle_start_seconds,new_candle_flag,start_program_flag
 candleData={}
 obj=SmartConnect(api_key="tKace7Mp")
-data = obj.generateSession("D43726","Angel@1986")
+data = obj.generateSession("D43726","mar@2021")
 FEED_TOKEN=obj.getfeedToken() 
 CLIENT_CODE="D43726"
 cur_candle=[]
 mycursor = t.mydb.cursor()
-symQuery = "select symbol,token from algo_symbols limit 3"
+symQuery = "select symbol,token from algo_symbols"
 mycursor.execute(symQuery)
 data = mycursor.fetchall()
 token=""
 symToken={}
 tabulardata = [("Time","symbol","LTP")]
-candle_start_times={"0","15","30","45"}
-candle_start_seconds="1"
+candle_start_times={"0","5","10","15","20","25","30","35","40","45","50","55"}
+candle_start_seconds={"1","2","3","4","5"}
 new_candle_flag = {}
 start_program_flag=True
 
@@ -29,22 +29,26 @@ start_program_flag=True
 def form_candle(time,sym,ltp,candleData):
 	tabular = [("symbol","time","open","close","high","low")]
 	keys = candleData.keys()
-	if((str(time.minute) in  candle_start_times and str(time.second)==candle_start_seconds and ( new_candle_flag[sym]!="close")) or len(candleData)==0 or sym not in keys):
+	if((str(time.minute) in  candle_start_times and str(time.second) in candle_start_seconds and ( len(new_candle_flag)!=0 and new_candle_flag[sym]!="close")) or len(candleData)==0 or sym not in keys):
 		if(len(candleData)!=0 and sym in keys):
 			temp= candleData[sym]
-			sqlQuery = "insert into candle_data(symbol,closingtime,open,close,high,low)values(%s,%s,%s,%s,%s,%s)"
-			values=(sym,time,temp[0],temp[1],temp[2],temp[3])
-			mycursor.execute(sqlQuery,values)
-			print("Record inserted for :",sym)
-			candleData={}
+			try:
+				sqlQuery = "insert into candle_data(symbol,closingtime,open,close,high,low)values(%s,%s,%s,%s,%s,%s)"
+				values=(sym,time,temp[0],temp[1],temp[2],temp[3])
+				mycursor.execute(sqlQuery,values)
+				t.mydb.commit()
+				print("Record inserted for :",sym)
+				del candleData[sym]
+			except:
+				print("Error while insert")
+			
 		candleData[sym] = [ltp,ltp,ltp,ltp]
 		new_candle_flag[sym]="close"
-		print("start for : ",sym)
+		#print("start for : ",sym)
 		start_program_flag=False
 
 
 	else:
-		keys = candleData.keys()
 		if(sym in keys):
 			insertData =  candleData[sym]
 			high=insertData[2]
@@ -53,17 +57,19 @@ def form_candle(time,sym,ltp,candleData):
 				low=ltp
 			if(ltp > insertData[2]):
 				high=ltp
-			candleData[sym]=[insertData[0],insertData[1],high,low]
+			newData = [insertData[0],ltp,high,low]
+			candleData[sym] = newData
 			if(str(time.minute) not in candle_start_times):
 				new_candle_flag[sym]="open"
-		print("continue for : ",sym)
+		#print("continue for : ",sym)
 
-	# keys = candleData.keys()
+	
+	# tabular = [("symbol","time","open","close","high","low")]
 	# for key in keys:
 	# 	insertData = candleData[key]
 	# 	tempTab = (key,time.minute,insertData[0],insertData[1],insertData[2],insertData[3])
 	# 	tabular.append(tempTab)
-	# os.system('cls')
+	# print("Data after candle updation")
 	# print(tabulate(tabular,headers="firstrow"))
 
 
