@@ -114,12 +114,29 @@ for stock in aStocksList:
 	elif(process_sym==stock.symbol and sym_count==2):
 		l2_candle=stock.stock
 		
-		#wick reversal
-		if(cur_candle[7]>=2.5*cur_candle[6]):
-			if(cur_candle[9]<=0.35):
+		cur_open = cur_candle[2]
+		cur_close= cur_candle[3]
+		cur|_high=cur_candle[4]
+		cur|_low=cur_candle[5]
+
+
+		if(cur_close>cur_open):
+			if( ( (cur_open-cur_low) >= 2.5* (cur_close-cur_open)) and (cur_candle[9]<=0.35) ):
 				signal1="buy"
-			if(cur_candle[9]>=0.65):
+			if( (cur_candle[9]>=0.65) and ( (cur_high-cur_open) >= 2.5* (cur_close-cur_open)) ):
 				signal1="sell"
+		elif(cur_open>cur_close):
+			if(  (cur_candle[9]>=0.65) and ( (cur_high-cur_open) >= 2.5* (cur_open-cur_close)) ):
+				signal1="sell"
+			if( ( (cur_open-cur_low) >= 2.5* (cur_close-cur_open)) and (cur_candle[9]<=0.35) ):
+				signal1="buy"
+
+		#wick reversal
+		# if(cur_candle[7]>=2.5*cur_candle[6]):
+		# 	if(cur_candle[9]<=0.35):
+		# 		signal1="buy"
+		# 	if(cur_candle[9]>=0.65):
+		# 		signal1="sell"
 
 		#extreme reversal
 		if(prev_candle[10]>=2*process_avg_candlesize and prev_candle[8]>0.5 and prev_candle[8]<0.85):
