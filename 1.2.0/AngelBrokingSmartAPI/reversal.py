@@ -95,7 +95,7 @@ process_avg_candlesize=0
 process_sma10=0
 sym_count=0
 tabularData=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor")]
-tabularData2=[("symbol","SMA10","Wick_reversal_signal","Extream_reversal_signal")]
+tabularData2=[("symbol","Time","SMA10","Wick_reversal_signal","Extream_reversal_signal")]
 for stock in aStocksList:
 	
 	#tabularData.append(stock.stock)
@@ -116,19 +116,18 @@ for stock in aStocksList:
 		
 		cur_open = cur_candle[2]
 		cur_close= cur_candle[3]
-		cur|_high=cur_candle[4]
-		cur|_low=cur_candle[5]
-
-
+		cur_high=cur_candle[4]
+		cur_low=cur_candle[5]
+		closing_time=cur_candle[1]
 		if(cur_close>cur_open):
-			if( ( (cur_open-cur_low) >= 2.5* (cur_close-cur_open)) and (cur_candle[9]<=0.35) ):
+			if( ( (cur_open-cur_low) >= 3.5* (cur_close-cur_open)) and (cur_candle[9]<=0.3) ):
 				signal1="buy"
-			if( (cur_candle[9]>=0.65) and ( (cur_high-cur_open) >= 2.5* (cur_close-cur_open)) ):
+			if( (cur_candle[9]>=0.70) and ( (cur_high-cur_open) >= 3.5* (cur_close-cur_open)) ):
 				signal1="sell"
 		elif(cur_open>cur_close):
-			if(  (cur_candle[9]>=0.65) and ( (cur_high-cur_open) >= 2.5* (cur_open-cur_close)) ):
+			if(  (cur_candle[9]>=0.70) and ( (cur_high-cur_open) >= 3.5* (cur_open-cur_close)) ):
 				signal1="sell"
-			if( ( (cur_open-cur_low) >= 2.5* (cur_close-cur_open)) and (cur_candle[9]<=0.35) ):
+			if( ( (cur_open-cur_low) >= 3.5* (cur_close-cur_open)) and (cur_candle[9]<=0.3) ):
 				signal1="buy"
 
 		#wick reversal
@@ -151,13 +150,13 @@ for stock in aStocksList:
 			# tempTabular=cur_candle
 			# tabularData.append(tempTabular)
 			# print(tabulate(tabularData,headers="firstrow"))
-			tempTabular = [process_sym,process_sma10,signal1,signal2]
+			tempTabular = [process_sym,closing_time,process_sma10,signal1,signal2]
 			tabularData2.append(tempTabular)
 			# print("SMA10  : ",process_sma10)
 			# print("Avergae Candlesize : ", process_avg_candlesize)
 			# print("wick reversal signal = ",signal1)
 			# print("extreme reversal signal = ",signal2)
 		else:
-			tempTabular = [process_sym,process_sma10,signal1,signal2]
+			tempTabular = [process_sym,closing_time,process_sma10,signal1,signal2]
 			tabularData2.append(tempTabular)	
-print(tabulate(tabularData2,headers="firstrow"))
+print(tabulate(tabularData2,headers="firstrow",tablefmt="pretty"))
