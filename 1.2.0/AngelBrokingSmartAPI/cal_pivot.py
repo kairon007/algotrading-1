@@ -77,7 +77,7 @@ for symbol in records_sym:
 			cpt_relationship="NA"
 		previous_cpt= [bc,pivot,tc]	
 		try:
-			sqlquery = "insert into pivots(symbol,date,cpt_relationship,bc,pivot,tc,cpr_width,l5,l4,l3,l2,l1,h1,h2,h3,h4,h5)values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+			sqlquery = "insert into pivots(symbol,closingdate,cpt_relationship,bc,pivot,tc,cpr_width,l5,l4,l3,l2,l1,h1,h2,h3,h4,h5)values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
 			values=(str(symbol[0]),str(date1[0]),cpt_relationship,bc,pivot,tc,width,l5,l4,l3,l2,l1,h1,h2,h3,h4,h5)
 			print(values)
 			mycursor.execute(sqlquery,values)

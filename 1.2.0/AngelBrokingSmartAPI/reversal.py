@@ -6,8 +6,10 @@ from AlgoStocks import AlgoStocks
 from datetime import timedelta
 from pprintpp import pprint as pp
 from tabulate import tabulate 
+from camlevels import camlevels
 
 aStocksList=[]
+pivots={}
 tabularData=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor")]
 record_l1={}
 record_l2={}
@@ -28,12 +30,38 @@ for sym in symbols:
 		total_price=0
 		signal1=""
 		signal2=""
+
 		total_records = len(records)
 		for record in records:
 			#print("Symbol processed  : ",str(sym[0]))
 			if(record_count==0):
 				record_cur=record
 				tabularData.append(record)
+				pivotQuery="select * from pivots where symbol='"+str(sym[0])+"' and date(closingdate)=date(%s)"
+				values=record[1]
+				mycursor.execute(pivotQuery,(values,))
+				temp_records = mycursor.fetchall()
+				if(temp_records):
+					for temp_record in temp_records:
+						symbol1=temp_record[0]
+						date1=temp_record[1]
+						cpt_relationship=temp_record[2]
+						bc=temp_record[3]
+						pivot=temp_record[4]
+						tc=temp_record[5]
+						cpr_width=temp_record[6]
+						l5=temp_record[7]
+						l4=temp_record[8]
+						l3=temp_record[9]
+						l2=temp_record[10]
+						l1=temp_record[11]
+						h1=temp_record[12]
+						h2=temp_record[13]
+						h3=temp_record[14]
+						h4=temp_record[15]
+						h5=temp_record[16]
+						temp_level=camlevels(symbol1,date1,cpt_relationship,bc,pivot,tc,cpr_width,l5,l4,l3,l2,l1,h1,h2,h3,h4,h5)
+						pivots[str(sym[0])]=temp_level
 			if(record_count==1):
 				record_l1=record
 				total_price=total_price + record[3]
@@ -95,13 +123,17 @@ process_avg_candlesize=0
 process_sma10=0
 sym_count=0
 tabularData=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor")]
-tabularData2=[("symbol","Time","SMA10","Wick_reversal_signal","Extream_reversal_signal")]
+tabularData2=[("symbol","Time","SMA10","Wick_reversal_signal","Extream_reversal_signal","H3 Reversal","L3 Reversal")]
 for stock in aStocksList:
 	
 	#tabularData.append(stock.stock)
 	
 	signal1=" "
 	signal2=" "
+	signal3=" "
+	signal4=" "
+	h3Reversal=""
+	l3Reversal=""
 	if(process_sym=="" or sym_count==0):
 		process_sym=stock.symbol
 		cur_candle=stock.stock
@@ -119,6 +151,11 @@ for stock in aStocksList:
 		cur_high=cur_candle[4]
 		cur_low=cur_candle[5]
 		closing_time=cur_candle[1]
+		keys=pivots.keys()
+		if(process_sym in keys):
+			pivot_record= pivots[process_sym]
+		else:
+			pivot_record={}
 		if(cur_close>cur_open):
 			if( ( (cur_open-cur_low) >= 3.5* (cur_close-cur_open)) and (cur_candle[9]<=0.3) ):
 				signal1="buy"
@@ -144,19 +181,44 @@ for stock in aStocksList:
 					signal2="buy"
 				else:
 					signal2="sell"
+		
+		#Outside Reversal Setup
+		if(cur_candle[5]<prev_candle[5] and cur_candle[3]>prev_candle[4] and cur_candle[10]>=process_avg_candlesize*1.20):
+			signal3="buy"
+		if(cur_candle[3]<prev_candle[5] and cur_candle[4]>prev_candle[4] and cur_candle[10]>=process_avg_candlesize*1.20):
+			signal3="sell"
+
+		#Doji Reversal Setup
+		if(cur_candle[8]<=0.10):
+			if(cur_candle[4]<=process_sma10):
+				signal4="buy"
+			if(cur_candle[5]>=process_sma10):
+				signal4="sell"
+
 		sym_count=0
 
-		if(signal1!=" " or signal2!=" "):
+		#H3 reversal
+		if(pivot_record):
+			if((cur_candle[4]>pivot_record.H3) and 
+				(signal1=="sell" or signal2=="sell" or signal3=="sell" or signal4=="sell") and 
+				(cur_candle[3]<pivot_record.H3)):
+				h3Reversal = "sell"
+			if((cur_candle[5]<pivot_record.L3) and 
+				(signal1=="buy" or signal2=="buy" or signal3=="buy" or signal4=="buy") and 
+				(cur_candle[3]>pivot_record.L3)):
+				l3Reversal = "buy"	
+
+		if(signal1!=" " or signal2!=" " or signal3!=" " or signal4!=" "):
 			# tempTabular=cur_candle
 			# tabularData.append(tempTabular)
 			# print(tabulate(tabularData,headers="firstrow"))
-			tempTabular = [process_sym,closing_time,process_sma10,signal1,signal2]
+			tempTabular = [process_sym,closing_time,process_sma10,signal1,signal2,h3Reversal,l3Reversal]
 			tabularData2.append(tempTabular)
 			# print("SMA10  : ",process_sma10)
 			# print("Avergae Candlesize : ", process_avg_candlesize)
 			# print("wick reversal signal = ",signal1)
 			# print("extreme reversal signal = ",signal2)
 		else:
-			tempTabular = [process_sym,closing_time,process_sma10,signal1,signal2]
+			tempTabular = [process_sym,closing_time,process_sma10,signal1,signal2,h3Reversal,l3Reversal]
 			tabularData2.append(tempTabular)	
 print(tabulate(tabularData2,headers="firstrow",tablefmt="pretty"))
