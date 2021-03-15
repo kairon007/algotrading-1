@@ -30,10 +30,6 @@ for symbol in records_sym:
 	x.add_column("symbol",[str(symbol[0]),str(symbol[0]),str(symbol[0]),str(symbol[0]),str(symbol[0]),str(symbol[0]),str(symbol[0]),str(symbol[0]),str(symbol[0]),str(symbol[0]),str(symbol[0]),str(symbol[0]),str(symbol[0]),str(symbol[0]),str(symbol[0])])
 	x.add_column("zone",["H5","H4","H3","H2","H1","L1","L2","L3","L4","L5","BC","PIVOT","TC","PIVOT WIDTH","CPT Relationship"])
 	for row in reversed(records):
-		#row[3]=close
-		#row[4]=high
-		#row[5]=low
-		#row[1]=date
 		date1=str(row[1]).split()
 		high=row[4]
 		low=row[5]
