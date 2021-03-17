@@ -20,8 +20,8 @@ data = mycursor.fetchall()
 token=""
 symToken={}
 tabulardata = [("Time","symbol","LTP")]
-candle_start_times={"0","5","10","15","20","25","30","35","40","45","50","55"}
-candle_start_seconds={"1","2","3","4","5"}
+candle_start_times={"0","5","10","15","20","25","30","35","40","45","50","55","59"}
+candle_start_seconds={"1","2","3","4","5","6","7"}
 new_candle_flag = {}
 start_program_flag=True
 
@@ -29,7 +29,8 @@ start_program_flag=True
 def form_candle(time,sym,ltp,candleData):
 	tabular = [("symbol","time","open","close","high","low")]
 	keys = candleData.keys()
-	if((str(time.minute) in  candle_start_times and str(time.second) in candle_start_seconds and ( len(new_candle_flag)!=0 and new_candle_flag[sym]!="close")) or len(candleData)==0 or sym not in keys):
+	candle_flag_keys = new_candle_flag.keys()
+	if((str(time.minute) in  candle_start_times and str(time.second) in candle_start_seconds and (sym in candle_flag_keys and new_candle_flag[sym]!="close" )) or len(candleData)==0 or sym not in keys):
 		if(len(candleData)!=0 and sym in keys):
 			temp= candleData[sym]
 			try:
@@ -37,7 +38,7 @@ def form_candle(time,sym,ltp,candleData):
 				values=(sym,time,temp[0],temp[1],temp[2],temp[3])
 				mycursor.execute(sqlQuery,values)
 				t.mydb.commit()
-				print("Record inserted for :",sym)
+				#print("Record inserted for :",sym)
 				del candleData[sym]
 			except:
 				print("Error while insert")
