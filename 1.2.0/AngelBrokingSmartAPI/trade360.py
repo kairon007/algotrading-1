@@ -150,7 +150,7 @@ if(True):
 		process_avg_candlesize=0
 		process_sma10=0
 		sym_count=0
-		tabularData2=[("symbol","Time","Target","SL","Entry Price","Breakout Signal","Breakout Conviction","Reversal signal","Reversal Conviction")]
+		tabularData2=[("symbol","Target","SL","Entry Price","Breakout Signal","Breakout Conviction","Reversal signal","Reversal Conviction","Remarks")]
 		tabularData=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor")]
 		for stock in aStocksList:
 			
@@ -166,6 +166,7 @@ if(True):
 			target=0
 			sl=0
 			entry=0
+			remarks=[]
 			if(process_sym=="" or sym_count==0):
 				process_sym=stock.symbol
 				cur_candle=stock.stock
@@ -188,6 +189,8 @@ if(True):
 					pivot_record= pivots[process_sym]
 				else:
 					pivot_record={}
+
+
 				if(cur_close>cur_open):
 					if( ( (cur_open-cur_low) >= 3.5* (cur_close-cur_open)) and (cur_candle[9]<=0.3) ):
 						signal1="buy"
@@ -202,6 +205,8 @@ if(True):
 					if( ( (cur_open-cur_low) >= 3.5* (cur_close-cur_open)) and (cur_candle[9]<=0.3) ):
 						signal1="buy"
 						logging.info(process_sym + " has formed wick reversal pattern-buy")
+				if(signal1!=" "):
+					remarks.append("Formed Wick Reversal signal (",signal1,") around ",cur_close)
 
 				#wick reversal
 				# if(cur_candle[7]>=2.5*cur_candle[6]):
@@ -219,6 +224,8 @@ if(True):
 						else:
 							signal2="sell"
 							logging.info(process_sym + " has formed extream reversal pattern - sell")
+				if(signal2!=" "):
+					remarks.append("Formed Extreme Reversal signal (",signal2,") around ",cur_close)
 				
 				#Outside Reversal Setup
 				if(cur_candle[5]<prev_candle[5] and cur_candle[3]>prev_candle[4] and cur_candle[10]>=process_avg_candlesize*1.20):
@@ -227,6 +234,9 @@ if(True):
 				if(cur_candle[3]<prev_candle[5] and cur_candle[4]>prev_candle[4] and cur_candle[10]>=process_avg_candlesize*1.20):
 					signal3="sell"
 					logging.info(process_sym + " has formed outside reversal pattern - sell")
+
+				if(signal3!=" "):
+					remarks.append("Formed Outside Reversal signal (",signal3,") around ",cur_close)
 
 				#Doji Reversal Setup
 				if(cur_candle[8]<=0.10):
@@ -237,6 +247,10 @@ if(True):
 						signal4="sell"
 						logging.info(process_sym + " has formed doji reversal pattern-sell")
 
+
+				if(signal4!=" "):
+					remarks.append("Formed Doji Reversal signal (",signal2,") around ",cur_close)
+				
 				sym_count=0
 
 				#H3 and L3 reversal
@@ -316,14 +330,44 @@ if(True):
 					if(symbol_ohlc[pivot_record.symbol][0]>pivot_record.pivot):
 						h4ConvictionCounts=h4ConvictionCounts+1
 						l4ConvictionCounts=l4ConvictionCounts-1
-					if(symbol_ohlc[pivot_record.symbol][0]):
+						remarks.append("Price opened above pivot - ",pivot_record.pivot)
+					if(symbol_ohlc[pivot_record.symbol][0]<pivot_record.pivot):
 						l4ConvictionCounts=l4ConvictionCounts+1
 						h4ConvictionCounts=h4ConvictionCounts-1
+						remarks.append("Price opened below pivot - ",pivot_record.pivot)
 					if(symbol_ohlc[pivot_record.symbol][0]<pivot_record.pivot):
 						h3ConvictionCounts=h3ConvictionCounts+1
 					if(symbol_ohlc[pivot_record.symbol][0]>pivot_record.pivot):
 						l3ConvictionCounts=l3ConvictionCounts+1
+					remarks.append("CPR width is ",pivot_record.cpr_width," and cpr relationship is ",pivot_record.cpt_relationship)
+					remarks.append("10 SMA is ",process_sma10)
+					day_high_price=float(symbol_ohlc[pivot_record.symbol][1])
+					if(day_high_price > pivot_record.H5):
+						remarks.append("Today's high price ",day_high_price," is above H5")
+					if(day_high_price > pivot_record.H3 and day_high_price < pivot_record.H4):
+						remarks.append("Today's high price ",day_high_price," is between H3 and H4")
+					if(day_high_price > pivot_record.H4 and day_high_price < pivot_record.H5):
+						remarks.append("Today's high price ",day_high_price," is between H4 and H5")
+					if(day_high_price > pivot_record.L3 and day_high_price < pivot_record.H3):
+						remarks.append("Today's high price ",day_high_price," is between L3 and H3")
+					if(day_high_price > pivot_record.L4 and day_high_price < pivot_record.L3):
+						remarks.append("Today's high price ",day_high_price," is between L4 and L3")
+					if(day_high_price > pivot_record.L5 and day_high_price < pivot_record.L4):
+						remarks.append("Today's high price ",day_high_price," is between L5 and L4")
 
+					day_low_price=float(symbol_ohlc[pivot_record.symbol][2])
+					if(day_low_price > pivot_record.H5):
+						remarks.append("Today's high price ",day_low_price," is above H5")
+					if(day_low_price > pivot_record.H3 and day_low_price < pivot_record.H4):
+						remarks.append("Today's high price ",day_low_price," is between H3 and H4")
+					if(day_low_price > pivot_record.H4 and day_low_price < pivot_record.H5):
+						remarks.append("Today's high price ",day_low_price," is between H4 and H5")
+					if(day_low_price > pivot_record.L3 and day_low_price < pivot_record.H3):
+						remarks.append("Today's high price ",day_low_price," is between L3 and H3")
+					if(day_low_price > pivot_record.L4 and day_low_price < pivot_record.L3):
+						remarks.append("Today's high price ",day_low_price," is between L4 and L3")
+					if(day_low_price > pivot_record.L5 and day_low_price < pivot_record.L4):
+						remarks.append("Today's high price ",day_low_price," is between L5 and L4")	
 
 					if(h3ConvictionCounts >0 and h3Reversal=="sell"):
 						reversalConviction = str(round(((h3ConvictionCounts*100)/4),2))+"%"
@@ -347,7 +391,7 @@ if(True):
 					# tempTabular=cur_candle
 					# tabularData.append(tempTabular)
 					# print(tabulate(tabularData,headers="firstrow"))
-					tempTabular = [process_sym,closing_time,round(float(target),2),round(float(sl),2),round(float(entry),2),breakoutSignal,breakoutConviction,reversalSignal,reversalConviction]
+					tempTabular = [process_sym,round(float(target),2),round(float(sl),2),round(float(entry),2),breakoutSignal,breakoutConviction,reversalSignal,reversalConviction,remarks]
 					tabularData2.append(tempTabular)
 					# print("SMA10  : ",process_sma10)
 					# print("Avergae Candlesize : ", process_avg_candlesize)
