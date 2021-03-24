@@ -12,10 +12,7 @@ import os
 
 candle_start_times={"1","16","32","46","43"}
 candle_start_seconds={"1","2"}
-
 while(True):
-		
-	#if(str(datetime.now().minute) in candle_start_times and str(datetime.now().second) in candle_start_seconds):
 		os.system('cls')
 		print("scanning time : " ,datetime.now())
 		aStocksList=[]
@@ -27,7 +24,7 @@ while(True):
 		mycursor = t.mydb.cursor()
 		symQuery = "select distinct symbol from symbol_tracking"
 		mycursor.execute(symQuery)
-		symbols = mycursor.fetchall()
+		symbols = mycursor.fetchall()	
 		for sym in symbols:
 				sqlquery =  "select * from candle_data where symbol='"+str(sym[0])+"' order by closingtime desc LIMIT 51"
 				mycursor.execute(sqlquery)
@@ -131,8 +128,8 @@ while(True):
 		process_avg_candlesize=0
 		process_sma10=0
 		sym_count=0
+		tabularData2=[("symbol","Time","Target","SL","Entry Price","Breakout Signal","Breakout Conviction","Reversal signal","Reversal Conviction")]
 		tabularData=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor")]
-		tabularData2=[("symbol","Time","Target","Breakout Signal","Breakout Conviction","Reversal signal","Reversal Conviction")]
 		for stock in aStocksList:
 			
 			#tabularData.append(stock.stock)
@@ -145,6 +142,8 @@ while(True):
 			h4Breakout=""
 			l4Breakout=""
 			target=0
+			sl=0
+			entry=0
 			if(process_sym=="" or sym_count==0):
 				process_sym=stock.symbol
 				cur_candle=stock.stock
@@ -215,20 +214,27 @@ while(True):
 						(cur_candle[3]<pivot_record.H3)):
 						h3Reversal = "sell"
 						target=pivot_record.L3
+						sl=pivot_record.H4
+						entry=pivot_record.H3
 					if((cur_candle[5]<pivot_record.L3) and 
 						(signal1=="buy" or signal2=="buy" or signal3=="buy" or signal4=="buy") and 
 						(cur_candle[3]>pivot_record.L3)):
 						l3Reversal = "buy"	
 						target=pivot_record.H3
-
+						sl=pivot_record.L4
+						entry=pivot_record.L3
 				#H4 and L4 Breakout play
 				if(pivot_record):
 					if((cur_candle[3]>pivot_record.H4) and cur_candle[8]>0.6 and (pivot_record.H5 - cur_candle[3])*100/cur_candle[3] > 1):
 						h4Breakout="buy"
 						target=pivot_record.H5
+						sl=pivot_record.H3
+						entry=pivot_record.H4
 					if((cur_candle[3]<pivot_record.L4) and cur_candle[8]>0.6 and (cur_candle[3] - pivot_record.L5)*100/cur_candle[3] > 1):
 						l4Breakout="sell"
 						target=pivot_record.L5
+						sl=pivot_record.L3
+						entry=pivot_record.L4
 
 				h3ConvictionCounts=0
 				l3ConvictionCounts=0
@@ -269,23 +275,27 @@ while(True):
 
 					if(h3ConvictionCounts >0 and h3Reversal=="sell"):
 						reversalConviction = str(round(((h3ConvictionCounts*100)/3),2))+"%"
-						reversalSignal="Sell"
+						if(round(((h3ConvictionCounts*100)/3),0)>33):
+							reversalSignal="Sell"
 					if(l3ConvictionCounts >0 and l3Reversal=="buy"):
 						reversalConviction = str(round(((l3ConvictionCounts*100)/3),2))+"%"
-						reversalSignal="Buy"
+						if(round(((l3ConvictionCounts*100)/3),0)>33):
+							reversalSignal="Buy"
 
 					if(h4ConvictionCounts >0 and h4Breakout=="buy"):
 						breakoutConviction=str(round(((h4ConvictionCounts*100)/3),2))+"%"
-						breakoutSignal="Buy"
+						if(round(((h4ConvictionCounts*100)/3),0)>33):
+							breakoutSignal="Buy"
 					if(l4ConvictionCounts >0 and l4Breakout=="sell"):
 						breakoutConviction=str(round(((l4ConvictionCounts*100)/3),2))+"%"
-						breakoutSignal="Sell"
+						if(round(((l4ConvictionCounts*100)/3),0)>33):
+							breakoutSignal="Sell"
 
 				if(breakoutSignal!=" " or reversalSignal!=" "):
 					# tempTabular=cur_candle
 					# tabularData.append(tempTabular)
 					# print(tabulate(tabularData,headers="firstrow"))
-					tempTabular = [process_sym,closing_time,round(float(target),2),breakoutSignal,breakoutConviction,reversalSignal,reversalConviction]
+					tempTabular = [process_sym,closing_time,round(float(target),2),round(float(sl),2),round(float(entry),2),breakoutSignal,breakoutConviction,reversalSignal,reversalConviction]
 					tabularData2.append(tempTabular)
 					# print("SMA10  : ",process_sma10)
 					# print("Avergae Candlesize : ", process_avg_candlesize)
@@ -295,6 +305,6 @@ while(True):
 					# tempTabular = [process_sym,closing_time,process_sma10,h4Breakout,l4Breakout,h3Reversal,l3Reversal]
 					# tabularData2.append(tempTabular)	
 		print(tabulate(tabularData2,headers="firstrow",tablefmt="pretty"))
-		time.sleep(300)
+		time.sleep(900)
 		print("Waking up...")
 
