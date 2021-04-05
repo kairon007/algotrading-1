@@ -9,20 +9,21 @@ from tabulate import tabulate
 from camlevels import camlevels
 import time
 import os
-from smartapi import WebSocket
-from smartapi import SmartConnect
+# from smartapi import WebSocket
+# from smartapi import SmartConnect
 import logging
 
 
-obj=SmartConnect(api_key="tKace7Mp")
-data = obj.generateSession("D43726","mar@2021")
+# obj=SmartConnect(api_key="rkq08Xgf")
+# data = obj.generateSession("D43726","Vanisha@2019")
 candle_start_times={"1","16","32","46","43"}
 candle_start_seconds={"1","2"}
 symbol_ohlc={}
 
 logging.basicConfig(filename='trade360.log', filemode='w',
 format='%(asctime)s,%(name)s - %(levelname)s - %(message)s',level=logging.DEBUG,datefmt='%Y-%m-%d %H:%M:%S')
-
+tabularData2=[("symbol","Target","SL","Entry Price","Breakout Signal","Breakout Conviction","Reversal signal","Reversal Conviction","Remarks","Entry Time")]
+		
 if(True):
 		os.system('cls')
 		print("scanning time : " ,datetime.now())
@@ -39,13 +40,30 @@ if(True):
 		tokenQuery = "select symbol,token from algo_symbols"
 		mycursor.execute(tokenQuery)
 		tokenSym = mycursor.fetchall()
-		for token2 in tokenSym:
-			sym1 = str(token2[0])
-			token1=str(token2[1])
-			logging.info('ltp request for '+sym1)
-			ltpData = obj.ltpData("NSE",sym1+"-EQ",token1)
-			symbol_ohlc[sym1]=[ltpData['data']['open'],ltpData['data']['high'],ltpData['data']['low']]
-			logging.info(ltpData)
+		groupQuery="select s2.*, s1.open from candle_data s1 , (select symbol,max(high),min(low) from candle_data where closingtime like %s group by symbol)s2 where s1.symbol=s2.symbol and s1.closingtime = %s";
+		openDate=datetime.now().strftime("%Y-%m-%d")
+		openDateTime=str(openDate)+" 11:45:00"
+		groupTime=str(openDate)+"%"
+		values=(str(groupTime),str(openDateTime))
+		mycursor.execute(groupQuery,values)
+		ohlcData = mycursor.fetchall()
+		for ohlc in ohlcData:
+			sym1=str(ohlc[0])
+			openPrice=float(ohlc[3])
+			highPrice=float(ohlc[1])
+			lowPrice=float(ohlc[2])
+			symbol_ohlc[sym1]=[openPrice,highPrice,lowPrice]
+			logging.debug(" data for "+sym1+" "+str(symbol_ohlc[sym1]))
+
+		# for token2 in tokenSym:
+		# 	sym1 = str(token2[0])
+		# 	token1=str(token2[1])
+		# 	print("NSE",sym1+"-EQ",token1)
+		# 	logging.info('ltp request for '+sym1)
+		# 	ltpData = obj.ltpData("NSE",sym1+"-EQ",token1)
+		# 	print(ltpData)
+		# 	symbol_ohlc[sym1]=[ltpData['data']['open'],ltpData['data']['high'],ltpData['data']['low']]
+		# 	logging.info(ltpData)
 		keys = symbol_ohlc.keys()
 		for sym in symbols:
 				sqlquery =  "select * from candle_data where symbol='"+str(sym[0])+"' order by closingtime desc LIMIT 51"
@@ -150,7 +168,7 @@ if(True):
 		process_avg_candlesize=0
 		process_sma10=0
 		sym_count=0
-		tabularData2=[("symbol","Target","SL","Entry Price","Breakout Signal","Breakout Conviction","Reversal signal","Reversal Conviction","Remarks")]
+		#tabularData2=[("symbol","Target","SL","Entry Price","Breakout Signal","Breakout Conviction","Reversal signal","Reversal Conviction","Remarks","Entry Time")]
 		tabularData=[("symbol","closingtime","open","close","high","low","bodysize","wicksize","bodypercentage","closepercentage","candlesize","candlecolor")]
 		for stock in aStocksList:
 			
@@ -206,7 +224,7 @@ if(True):
 						signal1="buy"
 						logging.info(process_sym + " has formed wick reversal pattern-buy")
 				if(signal1!=" "):
-					remarks.append("Formed Wick Reversal signal (",signal1,") around ",cur_close)
+					remarks.append("Formed Wick Reversal signal ("+str(signal1)+") around "+str(cur_close))
 
 				#wick reversal
 				# if(cur_candle[7]>=2.5*cur_candle[6]):
@@ -225,7 +243,7 @@ if(True):
 							signal2="sell"
 							logging.info(process_sym + " has formed extream reversal pattern - sell")
 				if(signal2!=" "):
-					remarks.append("Formed Extreme Reversal signal (",signal2,") around ",cur_close)
+					remarks.append("Formed Extreme Reversal signal ("+str(signal2)+") around "+str(cur_close))
 				
 				#Outside Reversal Setup
 				if(cur_candle[5]<prev_candle[5] and cur_candle[3]>prev_candle[4] and cur_candle[10]>=process_avg_candlesize*1.20):
@@ -236,7 +254,7 @@ if(True):
 					logging.info(process_sym + " has formed outside reversal pattern - sell")
 
 				if(signal3!=" "):
-					remarks.append("Formed Outside Reversal signal (",signal3,") around ",cur_close)
+					remarks.append("Formed Outside Reversal signal ("+str(signal3)+") around "+str(cur_close))
 
 				#Doji Reversal Setup
 				if(cur_candle[8]<=0.10):
@@ -249,7 +267,7 @@ if(True):
 
 
 				if(signal4!=" "):
-					remarks.append("Formed Doji Reversal signal (",signal2,") around ",cur_close)
+					remarks.append("Formed Doji Reversal signal ("+str(signal4)+") around "+str(cur_close))
 				
 				sym_count=0
 
@@ -330,44 +348,48 @@ if(True):
 					if(symbol_ohlc[pivot_record.symbol][0]>pivot_record.pivot):
 						h4ConvictionCounts=h4ConvictionCounts+1
 						l4ConvictionCounts=l4ConvictionCounts-1
-						remarks.append("Price opened above pivot - ",pivot_record.pivot)
+						remarks.append("Price opened above pivot - "+str(pivot_record.pivot))
 					if(symbol_ohlc[pivot_record.symbol][0]<pivot_record.pivot):
 						l4ConvictionCounts=l4ConvictionCounts+1
 						h4ConvictionCounts=h4ConvictionCounts-1
-						remarks.append("Price opened below pivot - ",pivot_record.pivot)
+						remarks.append("Price opened below pivot - "+str(pivot_record.pivot))
 					if(symbol_ohlc[pivot_record.symbol][0]<pivot_record.pivot):
 						h3ConvictionCounts=h3ConvictionCounts+1
 					if(symbol_ohlc[pivot_record.symbol][0]>pivot_record.pivot):
 						l3ConvictionCounts=l3ConvictionCounts+1
-					remarks.append("CPR width is ",pivot_record.cpr_width," and cpr relationship is ",pivot_record.cpt_relationship)
-					remarks.append("10 SMA is ",process_sma10)
+					remarks.append("CPR width is "+str(pivot_record.cpr_width)+" and cpr relationship is "+str(pivot_record.cpt_relationship))
+					remarks.append("10 SMA is "+str(process_sma10))
 					day_high_price=float(symbol_ohlc[pivot_record.symbol][1])
 					if(day_high_price > pivot_record.H5):
-						remarks.append("Today's high price ",day_high_price," is above H5")
+						remarks.append("Today's high price "+str(day_high_price)+" is above H5")
 					if(day_high_price > pivot_record.H3 and day_high_price < pivot_record.H4):
-						remarks.append("Today's high price ",day_high_price," is between H3 and H4")
+						remarks.append("Today's high price "+str(day_high_price)+" is between H3 and H4")
 					if(day_high_price > pivot_record.H4 and day_high_price < pivot_record.H5):
-						remarks.append("Today's high price ",day_high_price," is between H4 and H5")
+						remarks.append("Today's high price "+str(day_high_price)+" is between H4 and H5")
 					if(day_high_price > pivot_record.L3 and day_high_price < pivot_record.H3):
-						remarks.append("Today's high price ",day_high_price," is between L3 and H3")
+						remarks.append("Today's high price "+str(day_high_price)+" is between L3 and H3")
 					if(day_high_price > pivot_record.L4 and day_high_price < pivot_record.L3):
-						remarks.append("Today's high price ",day_high_price," is between L4 and L3")
+						remarks.append("Today's high price "+str(day_high_price)+" is between L4 and L3")
 					if(day_high_price > pivot_record.L5 and day_high_price < pivot_record.L4):
-						remarks.append("Today's high price ",day_high_price," is between L5 and L4")
+						remarks.append("Today's high price "+str(day_high_price)+" is between L5 and L4")
+					if(day_high_price < pivot_record.L5):
+						remarks.append("Today's high price "+str(day_high_price)+" is below L5")
 
 					day_low_price=float(symbol_ohlc[pivot_record.symbol][2])
 					if(day_low_price > pivot_record.H5):
-						remarks.append("Today's high price ",day_low_price," is above H5")
+						remarks.append("Today's low price "+str(day_low_price)+" is above H5")
 					if(day_low_price > pivot_record.H3 and day_low_price < pivot_record.H4):
-						remarks.append("Today's high price ",day_low_price," is between H3 and H4")
+						remarks.append("Today's low price "+str(day_low_price)+" is between H3 and H4")
 					if(day_low_price > pivot_record.H4 and day_low_price < pivot_record.H5):
-						remarks.append("Today's high price ",day_low_price," is between H4 and H5")
+						remarks.append("Today's low price "+str(day_low_price)+" is between H4 and H5")
 					if(day_low_price > pivot_record.L3 and day_low_price < pivot_record.H3):
-						remarks.append("Today's high price ",day_low_price," is between L3 and H3")
+						remarks.append("Today's low price "+str(day_low_price)+" is between L3 and H3")
 					if(day_low_price > pivot_record.L4 and day_low_price < pivot_record.L3):
-						remarks.append("Today's high price ",day_low_price," is between L4 and L3")
+						remarks.append("Today's low price "+str(day_low_price)+" is between L4 and L3")
 					if(day_low_price > pivot_record.L5 and day_low_price < pivot_record.L4):
-						remarks.append("Today's high price ",day_low_price," is between L5 and L4")	
+						remarks.append("Today's low price "+str(day_low_price)+" is between L5 and L4")	
+					if(day_low_price < pivot_record.L5):
+						remarks.append("Today's low price "+str(day_low_price)+" is below L5")
 
 					if(h3ConvictionCounts >0 and h3Reversal=="sell"):
 						reversalConviction = str(round(((h3ConvictionCounts*100)/4),2))+"%"
@@ -391,8 +413,13 @@ if(True):
 					# tempTabular=cur_candle
 					# tabularData.append(tempTabular)
 					# print(tabulate(tabularData,headers="firstrow"))
-					tempTabular = [process_sym,round(float(target),2),round(float(sl),2),round(float(entry),2),breakoutSignal,breakoutConviction,reversalSignal,reversalConviction,remarks]
+					entryTime = str(datetime.now().strftime("%H:%M:%S"))
+					formatted_remarks=""
+					for remark in remarks:
+						formatted_remarks=formatted_remarks+remark+". "
+					tempTabular = [process_sym,round(float(target),2),round(float(sl),2),round(float(entry),2),breakoutSignal,breakoutConviction,reversalSignal,reversalConviction,formatted_remarks,entryTime]
 					tabularData2.append(tempTabular)
+					tempTabular=[]
 					# print("SMA10  : ",process_sma10)
 					# print("Avergae Candlesize : ", process_avg_candlesize)
 					# print("wick reversal signal = ",signal1)
@@ -401,6 +428,6 @@ if(True):
 					# tempTabular = [process_sym,closing_time,process_sma10,h4Breakout,l4Breakout,h3Reversal,l3Reversal]
 					# tabularData2.append(tempTabular)	
 		print(tabulate(tabularData2,headers="firstrow",tablefmt="pretty"))
-		time.sleep(900)
+		#time.sleep(900)
 		print("Waking up...")
 
