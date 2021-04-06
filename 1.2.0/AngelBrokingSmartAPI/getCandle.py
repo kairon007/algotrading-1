@@ -60,4 +60,4 @@ while (True):
 				logging.debug("Error while inserting data for "+priceData)
 			time.sleep(0.35)
 
-	time.sleep(860)
+	time.sleep(890)

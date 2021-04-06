@@ -12,7 +12,7 @@ import os
 # from smartapi import WebSocket
 # from smartapi import SmartConnect
 import logging
-
+import mysql
 
 # obj=SmartConnect(api_key="rkq08Xgf")
 # data = obj.generateSession("D43726","Vanisha@2019")
@@ -42,7 +42,7 @@ if(True):
 		tokenSym = mycursor.fetchall()
 		groupQuery="select s2.*, s1.open from candle_data s1 , (select symbol,max(high),min(low) from candle_data where closingtime like %s group by symbol)s2 where s1.symbol=s2.symbol and s1.closingtime = %s";
 		openDate=datetime.now().strftime("%Y-%m-%d")
-		openDateTime=str(openDate)+" 11:45:00"
+		openDateTime=str(openDate)+" 09:30:00"
 		groupTime=str(openDate)+"%"
 		values=(str(groupTime),str(openDateTime))
 		mycursor.execute(groupQuery,values)
@@ -53,7 +53,7 @@ if(True):
 			highPrice=float(ohlc[1])
 			lowPrice=float(ohlc[2])
 			symbol_ohlc[sym1]=[openPrice,highPrice,lowPrice]
-			logging.debug(" data for "+sym1+" "+str(symbol_ohlc[sym1]))
+			#logging.debug(" data for "+sym1+" "+str(symbol_ohlc[sym1]))
 
 		# for token2 in tokenSym:
 		# 	sym1 = str(token2[0])
@@ -272,6 +272,13 @@ if(True):
 				sym_count=0
 
 				#H3 and L3 reversal
+				# logging.info("candle High price"+str(cur_candle[4]))
+				# logging.info("candle Low price"+str(cur_candle[5]))
+				# logging.info("candle Close price"+str(cur_candle[3]))
+				# logging.info("pivot H3 price"+str(pivot_record.H3))
+				# logging.info("pivot H4 price"+str(pivot_record.H4))
+				# logging.info("pivot L3 price"+str(pivot_record.L3))
+				# logging.info("pivot L4 price"+str(pivot_record.L4))
 				if(pivot_record):
 					if((cur_candle[4]>pivot_record.H3) and 
 						(signal1=="sell" or signal2=="sell" or signal3=="sell" or signal4=="sell") and 
@@ -313,10 +320,10 @@ if(True):
 				h4ConvictionCounts=0
 				l4ConvictionCounts=0
 
-				reversalConviction=" "
-				breakoutConviction=" "
-				reversalSignal=" "
-				breakoutSignal=" "
+				reversalConviction="NA"
+				breakoutConviction="NA"
+				reversalSignal="NA"
+				breakoutSignal="NA"
 				#Calculate conviction percentage
 				if(pivot_record):
 					
@@ -391,6 +398,13 @@ if(True):
 					if(day_low_price < pivot_record.L5):
 						remarks.append("Today's low price "+str(day_low_price)+" is below L5")
 
+					# logging.info(pivot_record.symbol)
+					# logging.info("l4ConvictionCounts"+str(l4ConvictionCounts))
+					# logging.info("l3ConvictionCounts"+str(l3ConvictionCounts))
+					# logging.info("H4ConvictionCounts"+str(h4ConvictionCounts))
+					# logging.info("H3ConvictionCounts"+str(h3ConvictionCounts))
+					# logging.info(remarks)
+
 					if(h3ConvictionCounts >0 and h3Reversal=="sell"):
 						reversalConviction = str(round(((h3ConvictionCounts*100)/4),2))+"%"
 						if(round(((h3ConvictionCounts*100)/3),0)>10):
@@ -409,25 +423,24 @@ if(True):
 						if(round(((l4ConvictionCounts*100)/3),0)>10):
 							breakoutSignal="Sell"
 
-				if(breakoutSignal!=" " or reversalSignal!=" "):
+				if(breakoutSignal!="NA" or reversalSignal!="NA"):
 					# tempTabular=cur_candle
 					# tabularData.append(tempTabular)
 					# print(tabulate(tabularData,headers="firstrow"))
-					entryTime = str(datetime.now().strftime("%H:%M:%S"))
+					entryTime = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 					formatted_remarks=""
 					for remark in remarks:
 						formatted_remarks=formatted_remarks+remark+". "
 					tempTabular = [process_sym,round(float(target),2),round(float(sl),2),round(float(entry),2),breakoutSignal,breakoutConviction,reversalSignal,reversalConviction,formatted_remarks,entryTime]
 					tabularData2.append(tempTabular)
-					tempTabular=[]
-					# print("SMA10  : ",process_sma10)
-					# print("Avergae Candlesize : ", process_avg_candlesize)
-					# print("wick reversal signal = ",signal1)
-					# print("extreme reversal signal = ",signal2)
-				#else:
-					# tempTabular = [process_sym,closing_time,process_sma10,h4Breakout,l4Breakout,h3Reversal,l3Reversal]
-					# tabularData2.append(tempTabular)	
-		print(tabulate(tabularData2,headers="firstrow",tablefmt="pretty"))
+					try:
+						insertQuery = "insert into trades(symbol,entrytime,bk_signal,bk_conv,rev_signal,rev_conv,cmp,target,sl,remarks) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+						insertValues=(process_sym,entryTime,breakoutSignal,breakoutConviction,reversalSignal,reversalConviction,round(float(entry),2),round(float(target),2),round(float(sl),2),formatted_remarks)
+						mycursor.execute(insertQuery,insertValues)
+						t.mydb.commit()
+					except:
+						print(mycursor.statement)
+        #print(tabulate(tabularData2,headers="firstrow",tablefmt="pretty"))
 		#time.sleep(900)
 		print("Waking up...")
 
