@@ -20,14 +20,26 @@ mycursor = t.mydb.cursor()
 symQuery = "select symbol,token from algo_symbols"
 mycursor.execute(symQuery)
 data = mycursor.fetchall()
-
-
-
+minute_intervals=[0,15,30,45]
 while (True):
 	nowTime = datetime.now()
-	pastTime=nowTime-timedelta(hours=0, minutes=15)
+	nowMinutes = int(nowTime.minute)
+	pastTime=nowTime
+	newTime=nowTime
+	if(nowMinutes >= minute_intervals[0] and nowMinutes < minute_intervals[1]):
+		newTime=nowTime.replace(minute=00)
+	elif(nowMinutes >= minute_intervals[1] and nowMinutes < minute_intervals[2] ):
+		newTime=nowTime.replace(minute=15)
+	elif(nowMinutes >= minute_intervals[2] and nowMinutes < minute_intervals[3] ):
+		newTime=nowTime.replace(minute=30)
+	elif(nowMinutes >= minute_intervals[3]):
+		newTime=nowTime.replace(minute=45)
+	
+	pastTime=newTime-timedelta(hours=0, minutes=15)
 	strPast = str(pastTime.strftime("%Y-%m-%d %H:%M"))
-	strNow = str(nowTime.strftime("%Y-%m-%d %H:%M"))
+	strNow = str(newTime.strftime("%Y-%m-%d %H:%M"))
+	logging.debug(strPast)
+	logging.debug(strNow)
 	for symData in data:
 		token = str(symData[1])
 		sym=str(symData[0])
@@ -35,11 +47,12 @@ while (True):
 		    "exchange": "NSE",
 		    "symboltoken": token,
 		    "interval": "FIFTEEN_MINUTE",
-		    "fromdate": strPast, 
-		    "todate": strNow
+		    "fromdate": strPast,
+		     "todate": strNow
 		}
 		values=obj.getCandleData(historicParam)
-		priceData = values['data']
+		logging.debug(values)
+		priceData = str(values['data']).split('\n')[0]
 		if(len(priceData)>0):
 			rawCandleData = priceData.split(',')
 			openPrice = rawCandleData[1]
@@ -60,4 +73,4 @@ while (True):
 				logging.debug("Error while inserting data for "+priceData)
 			time.sleep(0.35)
 
-	time.sleep(890)
+	time.sleep(875)

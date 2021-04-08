@@ -24,7 +24,7 @@ logging.basicConfig(filename='trade360.log', filemode='w',
 format='%(asctime)s,%(name)s - %(levelname)s - %(message)s',level=logging.DEBUG,datefmt='%Y-%m-%d %H:%M:%S')
 tabularData2=[("symbol","Target","SL","Entry Price","Breakout Signal","Breakout Conviction","Reversal signal","Reversal Conviction","Remarks","Entry Time")]
 		
-if(True):
+while(True):
 		os.system('cls')
 		print("scanning time : " ,datetime.now())
 		aStocksList=[]
@@ -224,7 +224,7 @@ if(True):
 						signal1="buy"
 						logging.info(process_sym + " has formed wick reversal pattern-buy")
 				if(signal1!=" "):
-					remarks.append("Formed Wick Reversal signal ("+str(signal1)+") around "+str(cur_close))
+					remarks.append("Formed Wick Reversal signal ("+str(signal1)+") around "+str(round(cur_close,2)))
 
 				#wick reversal
 				# if(cur_candle[7]>=2.5*cur_candle[6]):
@@ -243,7 +243,7 @@ if(True):
 							signal2="sell"
 							logging.info(process_sym + " has formed extream reversal pattern - sell")
 				if(signal2!=" "):
-					remarks.append("Formed Extreme Reversal signal ("+str(signal2)+") around "+str(cur_close))
+					remarks.append("Formed Extreme Reversal signal ("+str(signal2)+") around "+str(round(cur_close,2)))
 				
 				#Outside Reversal Setup
 				if(cur_candle[5]<prev_candle[5] and cur_candle[3]>prev_candle[4] and cur_candle[10]>=process_avg_candlesize*1.20):
@@ -254,7 +254,7 @@ if(True):
 					logging.info(process_sym + " has formed outside reversal pattern - sell")
 
 				if(signal3!=" "):
-					remarks.append("Formed Outside Reversal signal ("+str(signal3)+") around "+str(cur_close))
+					remarks.append("Formed Outside Reversal signal ("+str(signal3)+") around "+str(round(cur_close,2)))
 
 				#Doji Reversal Setup
 				if(cur_candle[8]<=0.10):
@@ -267,7 +267,7 @@ if(True):
 
 
 				if(signal4!=" "):
-					remarks.append("Formed Doji Reversal signal ("+str(signal4)+") around "+str(cur_close))
+					remarks.append("Formed Doji Reversal signal ("+str(signal4)+") around "+str(round(cur_close,2)))
 				
 				sym_count=0
 
@@ -355,18 +355,18 @@ if(True):
 					if(symbol_ohlc[pivot_record.symbol][0]>pivot_record.pivot):
 						h4ConvictionCounts=h4ConvictionCounts+1
 						l4ConvictionCounts=l4ConvictionCounts-1
-						remarks.append("Price opened above pivot - "+str(pivot_record.pivot))
+						remarks.append("Price opened above pivot - "+str(round(pivot_record.pivot,2)))
 					if(symbol_ohlc[pivot_record.symbol][0]<pivot_record.pivot):
 						l4ConvictionCounts=l4ConvictionCounts+1
 						h4ConvictionCounts=h4ConvictionCounts-1
-						remarks.append("Price opened below pivot - "+str(pivot_record.pivot))
+						remarks.append("Price opened below pivot - "+str(round(pivot_record.pivot,2)))
 					if(symbol_ohlc[pivot_record.symbol][0]<pivot_record.pivot):
 						h3ConvictionCounts=h3ConvictionCounts+1
 					if(symbol_ohlc[pivot_record.symbol][0]>pivot_record.pivot):
 						l3ConvictionCounts=l3ConvictionCounts+1
-					remarks.append("CPR width is "+str(pivot_record.cpr_width)+" and cpr relationship is "+str(pivot_record.cpt_relationship))
-					remarks.append("10 SMA is "+str(process_sma10))
-					day_high_price=float(symbol_ohlc[pivot_record.symbol][1])
+					remarks.append("CPR width is "+str(round(pivot_record.cpr_width,2))+" and cpr relationship is "+str(pivot_record.cpt_relationship))
+					remarks.append("10 SMA is "+str(round(process_sma10,2)))
+					day_high_price=round(float(symbol_ohlc[pivot_record.symbol][1]),2)
 					if(day_high_price > pivot_record.H5):
 						remarks.append("Today's high price "+str(day_high_price)+" is above H5")
 					if(day_high_price > pivot_record.H3 and day_high_price < pivot_record.H4):
@@ -382,7 +382,7 @@ if(True):
 					if(day_high_price < pivot_record.L5):
 						remarks.append("Today's high price "+str(day_high_price)+" is below L5")
 
-					day_low_price=float(symbol_ohlc[pivot_record.symbol][2])
+					day_low_price=round(float(symbol_ohlc[pivot_record.symbol][2]),2)
 					if(day_low_price > pivot_record.H5):
 						remarks.append("Today's low price "+str(day_low_price)+" is above H5")
 					if(day_low_price > pivot_record.H3 and day_low_price < pivot_record.H4):
@@ -438,9 +438,11 @@ if(True):
 						insertValues=(process_sym,entryTime,breakoutSignal,breakoutConviction,reversalSignal,reversalConviction,round(float(entry),2),round(float(target),2),round(float(sl),2),formatted_remarks)
 						mycursor.execute(insertQuery,insertValues)
 						t.mydb.commit()
+						logging.debug("Record inserted successfully for "+str(process_sym))
+
 					except:
 						print(mycursor.statement)
         #print(tabulate(tabularData2,headers="firstrow",tablefmt="pretty"))
-		#time.sleep(900)
+		time.sleep(910)
 		print("Waking up...")
 
